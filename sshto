@@ -20,9 +20,30 @@ knwhosts="$sshdir"/known_hosts # Path to known_hosts file.
 sshto_script[0]=~              # Path to sshto script
 sshto_script[1]=.sshto_script  # Sshto script filename
 sshto_script[2]="${sshto_script[0]}/${sshto_script[1]}" # Sshto script full
+#------------------------{ Help and version }---------------------------------------------------------------------------
+version=1.0
+help="sshto - SSH connection manager, powered by Dialog
+
+Usage:
+  sshto [options]
+
+Options:
+  -v, --v, -version, --version, version    Show sshto version
+  -h, --h, -help, --help, help             Show this help message
+
+  name    If 'name' is provided as 1st arg, sshto will simply output first selected target to stdout end exit.
+          This is useful if you need to set it to a var but don't remember exact target name, or it's
+          too long to write it by hand. Example: target=\$(sshto name)
+
+Configuration:
+  sshto reads hosts from $sshdir/config*
+"
+case ${OPT,,} in
+    -v|--v|-version|--version|version) echo "$version"; exit;;
+    -h|--h|-help|--help|help         ) echo "$help"   ; exit;;
+esac
 #------------------------{ Add some tabs }------------------------------------------------------------------------------
 tabbed(){ target=$target gnome-terminal --title=$target --tab -qe "${1/_target_/$target}"; } # Terminal command for tabs
-
 #------------------------{ Add your commands to this lists }------------------------------------------------------------
 cmdlist_renew(){
     cmdlist=(
