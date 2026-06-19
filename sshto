@@ -21,7 +21,7 @@ sshto_script[0]=~              # Path to sshto script
 sshto_script[1]=.sshto_script  # Sshto script filename
 sshto_script[2]="${sshto_script[0]}/${sshto_script[1]}" # Sshto script full
 #------------------------{ Help and version }---------------------------------------------------------------------------
-version=1.0
+version=1.01
 help="sshto - SSH connection manager, powered by Dialog
 
 Usage:
@@ -715,8 +715,21 @@ restart(){
     /Host /{
         strt=1
         host=$2
-        desc=gensub(/^.*Host .* #(.*)/, "\\1", "g", $0)
-        desc=gensub(/(.*)#.*/,          "\\1", "g", desc)
+        repl=""
+        if ($0 ~ ".+#.+") {
+            desc=gensub(/^.*Host .* #(.*)/, "\\1", "g", $0)
+            desc=gensub(/(.*)#.*/,          "\\1", "g", desc)
+        } else { desc=host }
+        for (i=2; i<=NF; i++) {
+            if($i ~ "^#"){next}
+            if (i>2) {
+                if (desc==host) { desc=$i }
+                if (desc==$(i-1)) { desc=$i }
+                repl=(" replica of " host "(" i-2 ")")
+            }
+            hosts[i]=$i
+            descs[i]=(desc repl)
+        }
         next
     }
     strt && host == "'"$group_id"'"{
@@ -725,8 +738,11 @@ restart(){
     }
     strt && /HostName /{
         hostname=$2
-        print host, hostname, desc
+        for(i in hosts){
+            print hosts[i], hostname, descs[i]
+        }
         strt=0
+        delete hosts
     }'  $CONFILES)
 
     descline=$(line - $desclength)
@@ -749,4 +765,4 @@ check_confile;  restart
 [[ $OPT =~ name ]] && { echo $target; exit; }
 [[ $target      ]] && second_dialog
 
-bye #:)
+bye #:)8--
